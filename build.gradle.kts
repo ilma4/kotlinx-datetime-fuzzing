@@ -1,6 +1,5 @@
 plugins {
     kotlin("jvm") version "2.0.10"
-    application
 }
 
 group = "org.example"
@@ -11,10 +10,6 @@ repositories {
     mavenLocal()
 }
 
-application {
-    // Specify the main class of your application
-    mainClass.set("kotlinx.fuzz.FindTargets") // Replace with your actual main class
-}
 
 dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.2")
@@ -30,10 +25,6 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
-}
-
-tasks.named<JavaExec>("run") {
-    classpath(sourceSets["test"].compileClasspath + sourceSets["main"].runtimeClasspath)
 }
 
 
