@@ -9,6 +9,8 @@ import com.code_intelligence.jazzer.api.FuzzedDataProvider
 import kotlinx.datetime.*
 import kotlinx.datetime.format.DateTimeFormat
 import kotlinx.datetime.format.DateTimeFormatBuilder
+import kotlinx.datetime.format.MonthNames
+import kotlinx.datetime.format.Padding
 import java.time.ZoneId
 import kotlin.time.Duration
 
@@ -78,18 +80,44 @@ private typealias FormatterOp = DateTimeFormatBuilder.WithDateTime.() -> Unit
 //    { second() },
 //)
 
+private val PADDING_VALS = Padding.entries.toTypedArray()
+private val MONTH_NAMES = arrayOf(MonthNames.ENGLISH_FULL, MonthNames.ENGLISH_ABBREVIATED)
 
-internal fun FuzzedDataProvider.consumeFormat(): DateTimeFormat<LocalDateTime> {
+internal fun FuzzedDataProvider.consumePadding(): Padding = pickValue(PADDING_VALS)
+internal fun FuzzedDataProvider.consumeMonthNames(): MonthNames = pickValue(MONTH_NAMES)
+
+internal fun FuzzedDataProvider.consumeDateTimeFormat(): DateTimeFormat<LocalDateTime> {
     val opsNum = consumeInt(0, 20)
-    val ops = List(opsNum) { consumeInt(0, 4) }
+    val ops = List(opsNum) { consumeInt(0, 9) }
     return LocalDateTime.Format {
         ops.forEach {
             when (it) {
-                0 -> amPmHour()
-                1 -> dayOfMonth()
-                2 -> monthNumber()
-                3 -> year()
-                4 -> second()
+                0 -> amPmHour(consumePadding())
+                1 -> dayOfMonth(consumePadding())
+                2 -> monthNumber(consumePadding())
+                3 -> year(consumePadding())
+                4 -> second(consumePadding())
+                5 -> monthName(consumeMonthNames())
+                6 -> amPmMarker(consumeString(10), consumeString(10))
+                7 -> secondFraction(consumeInt(1, 9), consumeInt(1, 9))
+                8 -> secondFraction(consumeInt(1, 9))
+                9 -> yearTwoDigits(consumeInt())
+            }
+        }
+    }
+}
+
+internal fun FuzzedDataProvider.consumeDateFormat(): DateTimeFormat<LocalDate> {
+    val opsNum = consumeInt(0, 20)
+    val ops = List(opsNum) { consumeInt(0, 4) }
+    return LocalDate.Format {
+        ops.forEach {
+            when (it) {
+                0 -> dayOfMonth(consumePadding())
+                1 -> monthNumber(consumePadding())
+                2 -> year(consumePadding())
+                3 -> monthName(consumeMonthNames())
+                4 -> yearTwoDigits(consumeInt())
             }
         }
     }

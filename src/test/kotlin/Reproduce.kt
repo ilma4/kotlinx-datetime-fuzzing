@@ -6,6 +6,8 @@
 @file:Suppress("RemoveRedundantQualifierName")
 
 import kotlinx.datetime.*
+import kotlinx.datetime.format.FormatStringsInDatetimeFormats
+import kotlinx.datetime.format.byUnicodePattern
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -229,5 +231,12 @@ class Reproduce {
         val s = "+" + "0".repeat(7) + "2020-08-30T18:43"
         assertThrows<Exception> { kotlinx.datetime.LocalDateTime.parse(s) }
         assertDoesNotThrow { kotlinx.datetime.LocalDateTime.Formats.ISO.parse(s) }
+    }
+
+    @OptIn(FormatStringsInDatetimeFormats::class)
+    @Test
+    fun localDateFormatByUnicode(){
+        val s = "g]"
+        LocalDate.Format { byUnicodePattern(s) }
     }
 }

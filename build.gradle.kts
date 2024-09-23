@@ -25,6 +25,9 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+    testLogging.showStandardStreams = true
+//    maxHeapSize = "4096m"
+    maxHeapSize = "${1024 * 4}m"
 }
 
 
