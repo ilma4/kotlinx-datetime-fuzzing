@@ -49,9 +49,21 @@ fun FuzzedDataProvider.consumeInstant(
 }
 
 
-val availableZoneIds = TimeZone.availableZoneIds.map { TimeZone.of(it) }.toTypedArray()
+internal val availableZoneIds = TimeZone.availableZoneIds.map { TimeZone.of(it) }.toTypedArray()
+internal val availableFixedOffsetZoneIds =
+    availableZoneIds.filterIsInstance<FixedOffsetTimeZone>().toTypedArray()
+
+internal val availableNonFixedOffsetZoneIds =
+    availableZoneIds.filter { it !is FixedOffsetTimeZone }.toTypedArray()
 
 fun FuzzedDataProvider.consumeTimeZone(): TimeZone = pickValue(availableZoneIds)
+
+fun FuzzedDataProvider.consumeNonFixedOffsetTimeZone(): TimeZone = pickValue(
+    availableNonFixedOffsetZoneIds
+)
+
+fun FuzzedDataProvider.consumeFixedOffsetTimeZone(): FixedOffsetTimeZone =
+    pickValue(availableFixedOffsetZoneIds)
 
 
 fun LocalDate.copyj(): java.time.LocalDate = java.time.LocalDate.of(year, monthNumber, dayOfMonth)
@@ -86,22 +98,42 @@ private val MONTH_NAMES = arrayOf(MonthNames.ENGLISH_FULL, MonthNames.ENGLISH_AB
 internal fun FuzzedDataProvider.consumePadding(): Padding = pickValue(PADDING_VALS)
 internal fun FuzzedDataProvider.consumeMonthNames(): MonthNames = pickValue(MONTH_NAMES)
 
+internal fun FuzzedDataProvider.consumeTimeFormat(): DateTimeFormat<LocalTime> {
+    val opsNum = consumeInt(0, 20)
+    val ops = List(opsNum) { consumeInt(0, 6) }
+    return LocalTime.Format {
+        ops.forEach {
+            when (it) {
+                0 -> amPmHour(consumePadding())
+                1 -> second(consumePadding())
+                2 -> minute(consumePadding())
+                3 -> hour(consumePadding())
+                4 -> amPmMarker(consumeString(10), consumeString(10))
+                5 -> secondFraction(consumeInt(1, 9), consumeInt(1, 9))
+                6 -> secondFraction(consumeInt(1, 9))
+            }
+        }
+    }
+}
+
 internal fun FuzzedDataProvider.consumeDateTimeFormat(): DateTimeFormat<LocalDateTime> {
     val opsNum = consumeInt(0, 20)
-    val ops = List(opsNum) { consumeInt(0, 9) }
+    val ops = List(opsNum) { consumeInt(0, 11) }
     return LocalDateTime.Format {
         ops.forEach {
             when (it) {
                 0 -> amPmHour(consumePadding())
-                1 -> dayOfMonth(consumePadding())
-                2 -> monthNumber(consumePadding())
-                3 -> year(consumePadding())
-                4 -> second(consumePadding())
-                5 -> monthName(consumeMonthNames())
-                6 -> amPmMarker(consumeString(10), consumeString(10))
-                7 -> secondFraction(consumeInt(1, 9), consumeInt(1, 9))
-                8 -> secondFraction(consumeInt(1, 9))
-                9 -> yearTwoDigits(consumeInt())
+                1 -> monthNumber(consumePadding())
+                2 -> year(consumePadding())
+                3 -> second(consumePadding())
+                4 -> minute(consumePadding())
+                5 -> hour(consumePadding())
+                6 -> dayOfMonth(consumePadding())
+                7 -> monthName(consumeMonthNames())
+                8 -> amPmMarker(consumeString(10), consumeString(10))
+                9 -> secondFraction(consumeInt(1, 9), consumeInt(1, 9))
+                10 -> secondFraction(consumeInt(1, 9))
+                11 -> yearTwoDigits(consumeInt())
             }
         }
     }

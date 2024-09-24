@@ -53,3 +53,7 @@ inline fun isFine(block: () -> Unit) = try {
     block()
 } catch (_: IllegalArgumentException) {
 }
+
+fun main() {
+    println()
+}
